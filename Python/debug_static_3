@@ -214,7 +214,7 @@ nc_lad[:, :, :] = nc_lad._FillValue
 #                y      x
 nc_building_id[17:61, 17:47] = 1
 nc_building_id[17:61, 17:27] = 2
-# nc_building_id[:5, -5:] = 3
+nc_building_id[17:61, 37:47] = 3
 # nc_building_id[-5:, -5:] = 4
 
 
@@ -227,8 +227,14 @@ nc_buildings_2d[:, :] = np.where(
 
 nc_buildings_2d[:, :] = np.where(
     nc_building_id[:, :] == 2,
-    nc_building_id[:, :] * 10.0,
+    (nc_building_id[:, :] * 19.0)/2,
     nc_buildings_2d[:, :])
+
+nc_buildings_2d[:, :] = np.where(
+    nc_building_id[:, :] == 3,
+    (nc_building_id[:, :] * 19.0)/3,
+    nc_buildings_2d[:, :])
+
 
 #%%% populate nc_buildings_3d 
 
