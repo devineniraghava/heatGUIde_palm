@@ -8,7 +8,7 @@ Created on Fri Feb 25 14:51:06 2022
 
 import netCDF4 as nc
 
-path = '/home/rdevinen/Documents/PALM_Seminar/NetCDF/Python/testing'
+path = '/home/rdevinen/palm/current_version/JOBS/test_urban_2/INPUT/test_urban_dynamic'
 
 # path = '/home/rdevinen/Documents/PALM_Seminar/NetCDF/Python/example_static_file.nc'
 
