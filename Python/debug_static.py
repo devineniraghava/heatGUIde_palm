@@ -14,7 +14,7 @@ import numpy as np
 
 #%%create a netCDF file
 
-nc_file = Dataset('/home/rdevinen/palm/current_version/JOBS/testing/INPUT/testing_static', 'w', format='NETCDF4')
+nc_file = Dataset('/home/rdevinen/palm/current_version/JOBS/test_urban_ms/test_urban_ms_static', 'w', format='NETCDF4')
 nc_file.title = 'Example PALM static driver'
 nc_file.author = 'PALM user'
 nc_file.institution = 'Institut für nachhaltige Energiesysteme,' \
@@ -42,8 +42,8 @@ nc_file.origin_z = 0.0
 nc_file.rotation_angle = 0.0
 
 #%% Coordinates
-nx = 63
-ny = 71
+nx = 39
+ny = 39
 nz = 40
 dx = 2
 dy = 2

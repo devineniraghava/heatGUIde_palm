@@ -14,7 +14,7 @@ import numpy as np
 
 #%%create a netCDF file
 
-nc_file = Dataset('testing_static', 'w', format='NETCDF4')
+nc_file = Dataset('/home/rdevinen/palm/current_version/JOBS/test_urban_ms/INPUT/test_urban_ms_static', 'w', format='NETCDF4')
 nc_file.title = 'Example PALM static driver'
 nc_file.author = 'PALM user'
 nc_file.institution = 'Institut für nachhaltige Energiesysteme,' \
@@ -210,6 +210,8 @@ nc_building_type[:, :])
 
 nc_pavement_type[9:11, :5] = 1
 nc_pavement_type[:, 7:13] = 2
+
+# nc_vegetation_type[20:25, 0] = 3
 
 nc_vegetation_type[:, 5:7] = 3
 nc_vegetation_type[:, 13:15] = 3

@@ -24,7 +24,7 @@ import pytz
 
 from netCDF4 import Dataset
 import numpy as np
-#%%
+
 
 class StaticDriver:
     """This is an example script to generate static drivers for PALM.
@@ -39,7 +39,7 @@ class StaticDriver:
         Existing file with same name is deleted.
         """
         print('Opening file...')
-        self.nc_file = Dataset('test_urban_static', 'w', format='NETCDF4')
+        self.nc_file = Dataset('example_static_file.nc', 'w', format='NETCDF4')
 
     def write_global_attributes(self):
         """Write global attributes to static driver."""
@@ -49,8 +49,8 @@ class StaticDriver:
         # --------------------------
         self.nc_file.title = 'Example PALM static driver'
         self.nc_file.author = 'PALM user'
-        self.nc_file.institution = 'Institut für nachhaltige Energiesysteme,' \
-            'Hochschule Offenburg'
+        self.nc_file.institution = 'Institut of Meteorology and Climatology,' \
+            'Leibniz University Hannover'
         self.nc_file.comment = 'Generic crossing example'
         self.nc_file.creation_date = \
             pytz.utc.localize(datetime.datetime.utcnow()).strftime('%y-%m-%d %H:%M:%S %z')[:-2]
@@ -65,11 +65,11 @@ class StaticDriver:
         # Mandatory global attributes
         # ---------------------------
         self.nc_file.Conventions = 'CF-1.7'
-        self.nc_file.origin_lat = 48.459638  # (overwrite initialization_parameters) 
-        self.nc_file.origin_lon = 7.941967  # Used to initialize Coriolis parameter
-        self.nc_file.origin_time = '2022-02-22 10:00:00 +00'
-        self.nc_file.origin_x = 421779.645 # Source: https://coordinates-converter.com/en/decimal/48.459638,7.941967?karte=OpenStreetMap&zoom=19
-        self.nc_file.origin_y = 5367929.731
+        self.nc_file.origin_lat = 52.50965  # (overwrite initialization_parameters)
+        self.nc_file.origin_lon = 13.3139  # Used to initialize Coriolis parameter
+        self.nc_file.origin_time = '2019-03-06 10:00:00 +00'
+        self.nc_file.origin_x = 3455249.0
+        self.nc_file.origin_y = 5424815.0
         self.nc_file.origin_z = 0.0
         self.nc_file.rotation_angle = 0.0
 
@@ -79,9 +79,9 @@ class StaticDriver:
 
         # Specify general grid parameters
         # These values must equal to those set in the initialization_parameters
-        self.nx = 39
-        self.ny = 39
-        self.nz = 40
+        self.nx = 19
+        self.ny = 19
+        self.nz = 20
         dx = 2
         dy = 2
         dz = 2
@@ -370,7 +370,7 @@ class StaticDriver:
         # nc_root_area_dens_s.long_name = 'root area density of parameterized vegetation'
         # nc_root_area_dens_s.units = '1'
         # nc_root_area_dens_s[:, :, :] = nc_root_area_dens_s._FillValue
-        #nc_lad
+        #
         # nc_tree_id = self.nc_file.createVariable(
         #     'tree_id', 'i4', ('y', 'x'), fill_value=-9999.0)
         # nc_tree_id.long_name = "tree id"
