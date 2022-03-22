@@ -1,3 +1,4 @@
+
 # http://palm.muk.uni-hannover.de/trac/browser/palm/trunk/SCRIPTS/create_basic_static_driver.py
 import datetime
 import math
@@ -20,7 +21,7 @@ class StaticDriver:
         Existing file with same name is deleted.
         """
         print('Opening file...')
-        self.nc_file = Dataset('example_static_file.nc', 'w', format='NETCDF4')
+        self.nc_file = Dataset('files/example_static_file.nc', 'w', format='NETCDF4')
 
     def write_global_attributes(self):
         """Write global attributes to static driver."""

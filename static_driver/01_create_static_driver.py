@@ -6,6 +6,10 @@ import pytz
 from netCDF4 import Dataset
 import numpy as np
 
+from warnings import filterwarnings
+filterwarnings(action='ignore', category=DeprecationWarning, message='`np.bool` is a deprecated alias')
+
+#%% GLobal Attributes
 
 class StaticDriver:
     """This is an example script to generate static drivers for PALM.
@@ -20,7 +24,7 @@ class StaticDriver:
         Existing file with same name is deleted.
         """
         print('Opening file...')
-        self.nc_file = Dataset('example_static_file.nc', 'w', format='NETCDF4')
+        self.nc_file = Dataset('/home/rdevinen/palm/current_version/JOBS/testing/INPUT/testing_static', 'w', format='NETCDF4')
 
     def write_global_attributes(self):
         """Write global attributes to static driver."""
@@ -45,15 +49,15 @@ class StaticDriver:
 
         # Mandatory global attributes
         # ---------------------------
-        self.nc_file.Conventions = 'CF-1.7'
-        self.nc_file.origin_lat = 52.50965  # (overwrite initialization_parameters)
-        self.nc_file.origin_lon = 13.3139  # Used to initialize Coriolis parameter
+        self.nc_file.Conventions = 'CF-1.7' # https://coordinates-converter.com/en/
+        self.nc_file.origin_lat = 48.471656  # (overwrite initialization_parameters)
+        self.nc_file.origin_lon = 7.944378  # Used to initialize Coriolis parameter
         self.nc_file.origin_time = '2019-03-06 10:00:00 +00'
-        self.nc_file.origin_x = 3455249.0
-        self.nc_file.origin_y = 5424815.0
+        self.nc_file.origin_x = 3422021.0
+        self.nc_file.origin_y = 5370972.0
         self.nc_file.origin_z = 0.0
         self.nc_file.rotation_angle = 0.0
-
+#%% Create Dimensions
     def define_dimensions(self):
         """Set dimensions on which variables are defined."""
         print("Writing dimensions...")
@@ -75,21 +79,23 @@ class StaticDriver:
         zsoil_array = zsoil_fullLayers - dz_soil/2.
 
         # Coordinates
-        # -----------
+        #%%% Create X dimension
         self.nc_file.createDimension('x', self.nx+1)
         self.x = self.nc_file.createVariable('x', 'f4', ('x',))
         self.x.long_name = 'distance to origin in x-direction'
         self.x.units = 'm'
         self.x.axis = 'X'
         self.x[:] = np.arange(0, (self.nx+1)*dx, dx) + 0.5 * dx
-
+        
+        #%%% Create Y dimension
         self.nc_file.createDimension('y', self.ny+1)
         self.y = self.nc_file.createVariable('y', 'f4', ('y',))
         self.y.long_name = 'distance to origin in y-direction'
         self.y.units = 'm'
         self.y.axis = 'Y'
         self.y[:] = np.arange(0, (self.ny+1)*dy, dy) + 0.5 * dy
-
+        
+        #%%% Create Z dimension
         # NOTE if your simulation uses a stretched vertical grid, you
         # need to modify the z coordinates, e.g. z_array = (...)
         z_array = np.append(0, np.arange(dz/2, (self.nz)*dz, dz))
@@ -100,7 +106,8 @@ class StaticDriver:
         self.z.axis = 'Z'
         self.z.positive = 'up'
         self.z[:] = z_array
-
+        
+        #%%% Create zlad dimension (Leaf Area Density)
         zlad_array = self.z[:6]
         self.nc_file.createDimension('zlad', len(zlad_array))
         self.zlad = self.nc_file.createVariable('zlad', 'f4', ('zlad',))
@@ -109,14 +116,15 @@ class StaticDriver:
         self.zlad.axis = 'Z'
         self.zlad.positive = 'up'
         self.zlad[:] = zlad_array
-
-        # self.nc_file.createDimension('zsoil', len(zsoil_array))
-        # self.zsoil = self.nc_file.createVariable('zsoil', 'f4', ('zsoil',))
-        # self.zsoil.long_name = 'depth in the soil'
-        # self.zsoil.units = 'm'
-        # self.zsoil.axis = 'Z'
-        # self.zsoil.positive = 'down'
-        # self.zsoil[:] = zsoil_array
+        
+        #%%% Create zsoil dimension 
+        self.nc_file.createDimension('zsoil', len(zsoil_array))
+        self.zsoil = self.nc_file.createVariable('zsoil', 'f4', ('zsoil',))
+        self.zsoil.long_name = 'depth in the soil'
+        self.zsoil.units = 'm'
+        self.zsoil.axis = 'Z'
+        self.zsoil.positive = 'down'
+        self.zsoil[:] = zsoil_array
 
         # Other dimensions
         # ----------------
@@ -144,7 +152,9 @@ class StaticDriver:
         # self.nsoil_pars = self.nc_file.createVariable(
         #     'nsoil_pars', 'i4', ('nsoil_pars',))
         # self.nsoil_pars[:] = np.arange(8)
-        #
+        
+        
+        #%%% Create nsurface_fraction dimension 
         self.nc_file.createDimension('nsurface_fraction', 3)
         self.nsurface_fraction = self.nc_file.createVariable(
             'nsurface_fraction', 'i4', ('nsurface_fraction',))
@@ -159,6 +169,7 @@ class StaticDriver:
         # self.nwater_pars = self.nc_file.createVariable(
         #     'nwater_pars', 'i4', ('nwater_pars',))
         # self.nwater_pars[:] = np.arange(7)
+#%% Create Variables
 
     def define_variables(self):
         """Define variables for the static driver.
@@ -183,32 +194,35 @@ class StaticDriver:
         print("Writing variables...")
 
         # Topography set-up
-        # -----------------
+        #%%% Create building_id Variable
         nc_building_id = self.nc_file.createVariable(
             'building_id', 'i4', ('y', 'x'), fill_value=-9999)
         nc_building_id.long_name = "building id number"
         nc_building_id.units = "1"
         nc_building_id[:, :] = nc_building_id._FillValue
-
+        
+        #%%% Create buildings_2d Variable
         nc_buildings_2d = self.nc_file.createVariable(
             'buildings_2d', 'f4', ('y', 'x'), fill_value=-9999.0)
         nc_buildings_2d.long_name = "building height"
         nc_buildings_2d.units = "m"
         nc_buildings_2d.lod = np.int32(1)
         nc_buildings_2d[:, :] = nc_buildings_2d._FillValue
-
+        
+        #%%% Create buildings_3d Variable
         nc_buildings_3d = self.nc_file.createVariable(
             'buildings_3d', 'i1', ('z', 'y', 'x'), fill_value=-127)
         nc_buildings_3d.long_name = "building flag"
         nc_buildings_3d.units = "1"
         nc_buildings_3d.lod = np.int32(2)
         nc_buildings_3d[:, :, :] = nc_buildings_3d._FillValue
-
+        
+        #%%% Create zt Variable
         nc_zt = self.nc_file.createVariable(
             'zt', 'f4', ('y', 'x'), fill_value=-9999.0)
-        nc_zt.long_name = 'terrain height'
-        nc_zt.units = 'm'
-        nc_zt[:, :] = nc_zt._FillValue
+        nc_zt.long_name = 'terrain height' # Terrain height in m relative to origin_z. 
+        nc_zt.units = 'm' # If not provided, the relative terrain height will be set to 0 m all over the model domain. 
+        nc_zt[:, :] = nc_zt._FillValue # Please note, zt must not contain any _FillValues.
 
         # nc_z0 = self.nc_file.createVariable(
         #     'z0', 'f4', ('y', 'x'), fill_value=-9999.0)
@@ -223,19 +237,19 @@ class StaticDriver:
         # nc_albedo_type.long_name = "albedo type"
         # nc_albedo_type.units = "1"
         # nc_albedo_type[:, :] = nc_albedo_type._FillValue
-        #
+        #%%% Create building_type Variable
         nc_building_type = self.nc_file.createVariable(
             'building_type', 'i1', ('y', 'x'), fill_value=-127)
         nc_building_type.long_name = "building type classification"
         nc_building_type.units = "1"
         nc_building_type[:, :] = nc_building_type._FillValue
-
+        #%%% Create pavement_type Variable
         nc_pavement_type = self.nc_file.createVariable(
             'pavement_type', 'i1', ('y', 'x'), fill_value=-127)
         nc_pavement_type.long_name = "pavement type classification"
         nc_pavement_type.units = "1"
         nc_pavement_type[:, :] = nc_pavement_type._FillValue
-
+        #%%% Create soil_type Variable
         nc_soil_type = self.nc_file.createVariable(
             'soil_type', 'i1', ('y', 'x'), fill_value=-127)
         nc_soil_type.long_name = "soil type classification"
@@ -259,14 +273,14 @@ class StaticDriver:
         # nc_street_crossing.units = "1"
         # nc_street_crossing.valid_range = np.byte(1)
         # nc_street_crossing[:, :] = nc_street_crossing._FillValue
-        #
+        #%%% Create street_type Variable
         nc_street_type = self.nc_file.createVariable(
             'street_type', 'i1', ('y', 'x'),
             fill_value=-127)
         nc_street_type.long_name = "street type classification"
         nc_street_type.units = "1"
         nc_street_type[:, :] = nc_street_type._FillValue
-
+        #%%% Create surface_fraction Variable
         nc_surface_fraction = self.nc_file.createVariable(
             'surface_fraction', 'f4', ('nsurface_fraction', 'y', 'x'), fill_value=-9999.0)
         nc_surface_fraction.long_name = "surface fraction"
@@ -274,13 +288,13 @@ class StaticDriver:
         nc_surface_fraction[0, :, :] = nc_surface_fraction._FillValue  # vegetation fraction
         nc_surface_fraction[1, :, :] = nc_surface_fraction._FillValue  # pavement fraction
         nc_surface_fraction[2, :, :] = nc_surface_fraction._FillValue  # water fraction
-
+        #%%% Create vegetation_type Variable
         nc_vegetation_type = self.nc_file.createVariable(
             'vegetation_type', 'i1', ('y', 'x'), fill_value=-127)
         nc_vegetation_type.long_name = "vegetation type classification"
         nc_vegetation_type.units = "1"
         nc_vegetation_type[:, :] = nc_vegetation_type._FillValue
-
+        #%%% Create water_type Variable
         nc_water_type = self.nc_file.createVariable(
             'water_type', 'i1', ('y', 'x'), fill_value=-127)
         nc_water_type.long_name = "water type classification"
@@ -327,7 +341,7 @@ class StaticDriver:
         # nc_water_pars[:, :, :] = nc_water_pars._FillValue
 
         # Vegetation parameters
-        # ---------------------
+        #%%% Create lad Variable 
         nc_lad = self.nc_file.createVariable(
             'lad', 'f4', ('zlad', 'y', 'x'), fill_value=-9999.0)
         nc_lad.long_name = "leaf area density"
@@ -358,42 +372,43 @@ class StaticDriver:
         # nc_tree_id.units = "1"
         # nc_tree_id[:, :, :] = nc_tree_id._FillValue
 
+#%% Populate Variables
         # Set topography
-        # --------------
+        #%%% Populate building_id Variable
         nc_building_id[:5, :5] = 1
         nc_building_id[-5:, :5] = 2
         nc_building_id[:5, -5:] = 3
         nc_building_id[-5:, -5:] = 4
-
+        #%%% Populate building_id Variable
         nc_buildings_2d[:, :] = np.where(
             nc_building_id[:, :] > nc_building_id._FillValue,
             nc_building_id[:, :] * 10.0,
             nc_buildings_2d[:, :])
-
+        #%%% Populate building_id Variable
         for k in range(self.nz+1):
             nc_buildings_3d[k, :, :] = np.where(nc_buildings_2d[:, :] > self.z[k], 1, 0)
-
+        #%%% Populate building_id Variable
         nc_zt[:, :] = 4.0
-
+        #%%% Populate building_id Variable
         # Set surface types
         # -----------------
         nc_building_type[:, :] = np.where(
             nc_building_id[:, :] > nc_building_id._FillValue,
             nc_building_id[:, :] * 1,
             nc_building_type[:, :])
-
+        #%%% Populate building_id Variable
         nc_pavement_type[9:11, :5] = 1
         nc_pavement_type[:, 7:13] = 2
-
+        #%%% Populate building_id Variable
         nc_vegetation_type[:, 5:7] = 3
         nc_vegetation_type[:, 13:15] = 3
         nc_vegetation_type[5:15, 15:] = 3
         nc_vegetation_type[7:9, 15:17] = 1
         nc_vegetation_type[11:13, 15:17] = 1
-
+        #%%% Populate building_id Variable
         nc_water_type[5:9, :5] = 2
         nc_water_type[11:15, :5] = 2
-
+        #%%% Populate building_id Variable
         nc_soil_type[:, :] = np.where(
             nc_vegetation_type[:, :] > nc_vegetation_type._FillValue,
             2,
@@ -402,17 +417,18 @@ class StaticDriver:
             nc_pavement_type[:, :] > nc_pavement_type._FillValue,
             2,
             nc_soil_type[:, :])
-
+        #%%% Populate building_id Variable
         nc_street_type[:, :] = np.where(nc_pavement_type[:, :] == 1, 11, nc_street_type[:, :])
         nc_street_type[:, :] = np.where(nc_pavement_type[:, :] == 2, 13, nc_street_type[:, :])
-
+        #%%% Populate building_id Variable
         nc_surface_fraction[0, :, :] = np.where(
             nc_building_id[:, :] > nc_building_id._FillValue,
             nc_surface_fraction[0, :, :],
             0)
         nc_surface_fraction[2, :, :] = nc_surface_fraction[1, :, :] = nc_surface_fraction[0, :, :]
         nc_surface_fraction[0, :, :] = np.where(
-            nc_vegetation_type[:, :] > nc_vegetation_type._FillValue,
+        #%%% Populate building_id Variable
+        nc_vegetation_type[:, :] > nc_vegetation_type._FillValue,
             1,
             nc_surface_fraction[0, :, :])
         nc_surface_fraction[1, :, :] = np.where(
