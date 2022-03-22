@@ -24,7 +24,7 @@ class StaticDriver:
         Existing file with same name is deleted.
         """
         print('Opening file...')
-        self.nc_file = Dataset('files/testing_static', 'w', format='NETCDF4')
+        self.nc_file = Dataset('/home/rdevinen/palm/current_version/JOBS/testing/INPUT/testing_static', 'w', format='NETCDF4')
 
     def write_global_attributes(self):
         """Write global attributes to static driver."""
@@ -66,10 +66,10 @@ class StaticDriver:
         # These values must equal to those set in the initialization_parameters
         self.nx = 19
         self.ny = 19
-        self.nz = 64
-        dx = 1
-        dy = 1
-        dz = 1
+        self.nz = 20
+        dx = 2
+        dy = 2
+        dz = 2
 
         # Create soil grid (only relevant if land surface module is used)
         dz_soil = np.array((0.01, 0.02, 0.04, 0.06, 0.14, 0.26, 0.54, 1.86))
@@ -379,36 +379,36 @@ class StaticDriver:
         nc_building_id[-5:, :5] = 2
         nc_building_id[:5, -5:] = 3
         nc_building_id[-5:, -5:] = 4
-        #%%% Populate buildings_2d Variable
+        #%%% Populate building_id Variable
         nc_buildings_2d[:, :] = np.where(
             nc_building_id[:, :] > nc_building_id._FillValue,
             nc_building_id[:, :] * 10.0,
             nc_buildings_2d[:, :])
-        #%%% Populate buildings_3d Variable
+        #%%% Populate building_id Variable
         for k in range(self.nz+1):
             nc_buildings_3d[k, :, :] = np.where(nc_buildings_2d[:, :] > self.z[k], 1, 0)
         #%%% Populate building_id Variable
         nc_zt[:, :] = 4.0
-        #%%% Populate building_type Variable
+        #%%% Populate building_id Variable
         # Set surface types
         # -----------------
         nc_building_type[:, :] = np.where(
             nc_building_id[:, :] > nc_building_id._FillValue,
             nc_building_id[:, :] * 1,
             nc_building_type[:, :])
-        #%%% Populate pavement_type Variable
+        #%%% Populate building_id Variable
         nc_pavement_type[9:11, :5] = 1
         nc_pavement_type[:, 7:13] = 2
-        #%%% Populate vegetation_type Variable
+        #%%% Populate building_id Variable
         nc_vegetation_type[:, 5:7] = 3
         nc_vegetation_type[:, 13:15] = 3
         nc_vegetation_type[5:15, 15:] = 3
         nc_vegetation_type[7:9, 15:17] = 1
         nc_vegetation_type[11:13, 15:17] = 1
-        #%%% Populate water_type Variable
+        #%%% Populate building_id Variable
         nc_water_type[5:9, :5] = 2
         nc_water_type[11:15, :5] = 2
-        #%%% Populate soil_type Variable
+        #%%% Populate building_id Variable
         nc_soil_type[:, :] = np.where(
             nc_vegetation_type[:, :] > nc_vegetation_type._FillValue,
             2,
@@ -417,16 +417,17 @@ class StaticDriver:
             nc_pavement_type[:, :] > nc_pavement_type._FillValue,
             2,
             nc_soil_type[:, :])
-        #%%% Populate street_type Variable
+        #%%% Populate building_id Variable
         nc_street_type[:, :] = np.where(nc_pavement_type[:, :] == 1, 11, nc_street_type[:, :])
         nc_street_type[:, :] = np.where(nc_pavement_type[:, :] == 2, 13, nc_street_type[:, :])
-        #%%% Populate surface_fraction Variable
+        #%%% Populate building_id Variable
         nc_surface_fraction[0, :, :] = np.where(
             nc_building_id[:, :] > nc_building_id._FillValue,
             nc_surface_fraction[0, :, :],
             0)
         nc_surface_fraction[2, :, :] = nc_surface_fraction[1, :, :] = nc_surface_fraction[0, :, :]
         nc_surface_fraction[0, :, :] = np.where(
+        #%%% Populate building_id Variable
         nc_vegetation_type[:, :] > nc_vegetation_type._FillValue,
             1,
             nc_surface_fraction[0, :, :])
@@ -440,7 +441,7 @@ class StaticDriver:
             nc_surface_fraction[2, :, :])
 
         # Set vegetation
-        # -------------- 
+        # --------------
         lad_profile = [0.0, 0.01070122, 0.1070122, 0.3130108, 0.3879193, 0.1712195]
         for k in range(len(self.zlad)):
             nc_lad[k, 7:9, 15:17] = lad_profile[k]
