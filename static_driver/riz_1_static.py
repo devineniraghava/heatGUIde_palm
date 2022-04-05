@@ -19,7 +19,8 @@ filterwarnings(action='ignore', category=DeprecationWarning, message='`np.bool` 
 #%% netCDF main attributes
 
 #%%% Optional attribbutes
-nc_file = Dataset('/home/rdevinen/palm/current_version/JOBS/practice/INPUT/practice_static', 'w', format='NETCDF4')
+path = '/home/rdevinen/palm/current_version/JOBS/riz_2/INPUT/riz_2_static'
+nc_file = Dataset(path, 'w', format='NETCDF4')
 nc_file.title = 'Example PALM static driver'
 nc_file.author = 'devineni'
 nc_file.institution = 'Institut für nachhaltige Energiesysteme,' \
@@ -38,7 +39,7 @@ nc_file.version = '1'
 #%%% Mandatory global attributes
 # ---------------------------
 nc_file.Conventions = 'CF-1.7'
-nc_file.origin_lat = 48.459638  # (overwrite initialization_parameters) 
+nc_file.origin_lat = 48.459638  # (overwrite initialization_parameters) Approx RIZ building
 nc_file.origin_lon = 7.941967  # Used to initialize Coriolis parameter
 nc_file.origin_time = '2022-02-22 10:00:00 +00'
 nc_file.origin_x = 421779.645 # Source: https://coordinates-converter.com/en/decimal/48.459638,7.941967?karte=OpenStreetMap&zoom=19
@@ -49,7 +50,7 @@ nc_file.rotation_angle = 0.0
 #%% Coordinates
 nx = 63
 ny = 71
-nz = 40
+nz = 100
 dx = 1
 dy = 1
 dz = 1
@@ -342,6 +343,7 @@ for k in range(len(zlad)):
 
 a=nc_buildings_3d[:,:, :]    
 nc_file.close()
+print("File Should be saved in: {}".format(path))
 
 
 

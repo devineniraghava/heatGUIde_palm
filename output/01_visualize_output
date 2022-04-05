@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Apr  5 15:53:44 2022
+
+@author: rdevinen
+"""
+
+import pandas as pd
+import numpy as np
+import xarray as xr
+import matplotlib as plt
+print(xr.__version__)
+
+#%%
+
+
+odr = xr.open_dataset(
+    "/home/rdevinen/palm/current_version/JOBS/practice/OUTPUT/practice_3d.000.nc", engine="netcdf4")
+
+# odr["time"] = odr["time"] / np.timedelta64(1, 'h')
+
+indoor_temp = odr["im_t_indoor_mean"] - 273.15
+outdoor_temp = odr["theta"] - 273.15
+
+print("loading Done 1")
+
+#%% practice
+
+s2 = indoor_temp[:,12,40,22].to_series()
+s1 = indoor_temp[:,12,40,32].to_series()
+s3 = indoor_temp[:,12,40,42].to_series()
+out = outdoor_temp[:,12,40,8].to_series()
+
+#%%%
+
+horizontal_stack_practice = pd.concat([s2, s1,s3, out], axis=1).reset_index()
+horizontal_stack_practice.columns = ["time (hours)","type2", "type1", "type3", "outdoor"]
+horizontal_stack_practice["time (hours)"] = horizontal_stack_practice["time (hours)"] / np.timedelta64(1, 'h')
+horizontal_stack_practice = horizontal_stack_practice.set_index("time (hours)")
+
+horizontal_stack_practice.plot(title = "Practice_summer")
+
+
+#%% RIZ Summer
+odr = xr.open_dataset(
+    "/home/rdevinen/palm/current_version/JOBS/riz_2/OUTPUT/riz_2_3d.000.nc", engine="netcdf4")
+
+# odr["time"] = odr["time"] / np.timedelta64(1, 'h')
+
+indoor_temp = odr["im_t_indoor_mean"] - 273.15
+outdoor_temp = odr["theta"] - 273.15
+
+print("loading Done 2")
+
+#%%% slice
+s2 = indoor_temp[:,12,40,22].to_series()
+s1 = indoor_temp[:,12,40,32].to_series()
+s3 = indoor_temp[:,12,40,42].to_series()
+out = outdoor_temp[:,12,40,8].to_series()
+
+#%%% stack
+horizontal_stack_summer = pd.concat([s2, s1,s3, out], axis=1).reset_index()
+horizontal_stack_summer.columns = ["time (hours)","type2", "type1", "type3", "outdoor"]
+horizontal_stack_summer["time (hours)"] = horizontal_stack_summer["time (hours)"] / np.timedelta64(1, 'h')
+horizontal_stack_summer = horizontal_stack_summer.set_index("time (hours)")
+
+horizontal_stack_summer.plot(title = "RIZ_summer")
+
+#%% RIZ Winter
+odr = xr.open_dataset(
+    "/home/rdevinen/palm/current_version/JOBS/riz_winter/OUTPUT/riz_winter_3d.000.nc", engine="netcdf4")
+
+# odr["time"] = odr["time"] / np.timedelta64(1, 'h')
+
+indoor_temp = odr["im_t_indoor_mean"] - 273.15
+outdoor_temp = odr["theta"] - 273.15
+
+print("loading Done 3")
+
+#%%% slice
+s2 = indoor_temp[:,12,40,22].to_series()
+s1 = indoor_temp[:,12,40,32].to_series()
+s3 = indoor_temp[:,12,40,42].to_series()
+out = outdoor_temp[:,12,40,8].to_series()
+
+#%%% stack
+horizontal_stack_winter = pd.concat([s2, s1,s3, out], axis=1).reset_index()
+horizontal_stack_winter.columns = ["time (hours)","type2", "type1", "type3", "outdoor"]
+horizontal_stack_winter["time (hours)"] = horizontal_stack_winter["time (hours)"] / np.timedelta64(1, 'h')
+horizontal_stack_winter = horizontal_stack_winter.set_index("time (hours)")
+
+horizontal_stack_winter.plot(title = "RIZ_winter")
+
+
+
+
+
+
+
+
+
+
+
+
+#%%% RIZ Winter

@@ -19,87 +19,23 @@ import xarray as xr
 # from warnings import filterwarnings
 # filterwarnings(action='ignore', category=DeprecationWarning, message='`np.bool` is a deprecated alias')
 
-#%% Write netCDF data
-
-file = "test.nc"
-# Create file
-ds = nc.Dataset(file, "w", format="NETCDF4")
-# Create Dimensions
-time = ds.createDimension("time", None)
-
-lat = ds.createDimension("lat", 10)
-lon = ds.createDimension("lon", 10)
-# Create Variables 
-times = ds.createVariable("time", "f4", ("time",))
-lats = ds.createVariable("lat", "f4", ("lat",))
-lons = ds.createVariable("lon","f4",("lon", ))
-value = ds.createVariable("value", "f4", ("time", "lat", "lon",))
-# Create metadata for variables
-value.units = "Unknown"
-
-# Populate Dimensions
-lats[:] = np.arange(40,50,1)
-lons[:] = np.arange(-110, -100, 1)
-
-# Populate Variables
-value[0,:,:] = np.random.uniform(0, 100, size=(10,10))
-
-xval = np.linspace(0.5, 5, 10)
-yval = np.linspace(0.5, 5, 10)
-
-value[1,:,:] = np.array(xval.reshape(-1,1) + yval)
-
-# Close netCDF file
-ds.close()
-
-
-#%% Read netCDF data
-
-fn = "example_static_file.nc"
-
-ds = nc.Dataset(fn)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#%% Xarray
-
-ds = xr.open_dataset("example_static_file.nc", engine="netcdf4")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #%%
 
 
+import xarray as xr
+import matplotlib as plt
 
+
+#%%
+odr = xr.open_dataset(
+    "/home/rdevinen/Documents/GitHub/heatGUIde_palm/static_driver/files/testing_static", engine="netcdf4")
+
+ndr = xr.open_dataset(
+    "/home/rdevinen/Documents/GitHub/heatGUIde_palm/static_driver/files/practice_static", engine="netcdf4")
+
+#%%
+odr["surface_fraction"].sel(nsurface_fraction=slice(0, 2)).plot(col="nsurface_fraction", col_wrap=2, robust=True);
 
 
 
