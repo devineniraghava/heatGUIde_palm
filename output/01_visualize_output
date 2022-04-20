@@ -21,8 +21,7 @@ odr = xr.open_dataset(
 # odr["time"] = odr["time"] / np.timedelta64(1, 'h')
 
 indoor_temp = odr["im_t_indoor_mean"] - 273.15
-outdoor_temp = odr["theta"] - 273.15
-
+outdoor_temp = odr["theta"]
 print("loading Done 1")
 
 #%% practice
@@ -30,7 +29,8 @@ print("loading Done 1")
 s2 = indoor_temp[:,12,40,22].to_series()
 s1 = indoor_temp[:,12,40,32].to_series()
 s3 = indoor_temp[:,12,40,42].to_series()
-out = outdoor_temp[:,12,40,8].to_series()
+out = outdoor_temp[:,12,40,8].to_series()- 273.15
+
 
 #%%%
 
@@ -49,7 +49,7 @@ odr = xr.open_dataset(
 # odr["time"] = odr["time"] / np.timedelta64(1, 'h')
 
 indoor_temp = odr["im_t_indoor_mean"] - 273.15
-outdoor_temp = odr["theta"] - 273.15
+outdoor_temp = odr["theta"] 
 
 print("loading Done 2")
 
@@ -57,7 +57,7 @@ print("loading Done 2")
 s2 = indoor_temp[:,12,40,22].to_series()
 s1 = indoor_temp[:,12,40,32].to_series()
 s3 = indoor_temp[:,12,40,42].to_series()
-out = outdoor_temp[:,12,40,8].to_series()
+out = outdoor_temp[:,12,40,8].to_series() - 273.15
 
 #%%% stack
 horizontal_stack_summer = pd.concat([s2, s1,s3, out], axis=1).reset_index()
@@ -74,7 +74,7 @@ odr = xr.open_dataset(
 # odr["time"] = odr["time"] / np.timedelta64(1, 'h')
 
 indoor_temp = odr["im_t_indoor_mean"] - 273.15
-outdoor_temp = odr["theta"] - 273.15
+outdoor_temp = odr["theta"] 
 
 print("loading Done 3")
 
@@ -82,7 +82,7 @@ print("loading Done 3")
 s2 = indoor_temp[:,12,40,22].to_series()
 s1 = indoor_temp[:,12,40,32].to_series()
 s3 = indoor_temp[:,12,40,42].to_series()
-out = outdoor_temp[:,12,40,8].to_series()
+out = outdoor_temp[:,12,40,8].to_series() - 273.15
 
 #%%% stack
 horizontal_stack_winter = pd.concat([s2, s1,s3, out], axis=1).reset_index()

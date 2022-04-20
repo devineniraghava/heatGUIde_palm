@@ -19,7 +19,7 @@ filterwarnings(action='ignore', category=DeprecationWarning, message='`np.bool` 
 #%% netCDF main attributes
 
 #%%% Optional attribbutes
-path = '/home/rdevinen/palm/current_version/JOBS/riz_2/INPUT/riz_2_static'
+path = '/home/rdevinen/palm/current_version/JOBS/riz_1/INPUT/riz_1_static'
 nc_file = Dataset(path, 'w', format='NETCDF4')
 nc_file.title = 'Example PALM static driver'
 nc_file.author = 'devineni'
@@ -288,6 +288,11 @@ nc_vegetation_type[61:, 9:] = 1
 nc_vegetation_type[:8, 9:] = 1
 nc_vegetation_type[29:50, 47:] = 3
 
+nc_vegetation_type[38:43, 51:57] = 1
+
+
+
+
 
 # nc_vegetation_type[5:15, 15:] = 3
 # nc_vegetation_type[7:9, 15:17] = 1
@@ -337,8 +342,8 @@ nc_surface_fraction[2, :, :] = np.where(
         # --------------
 lad_profile = [0.0, 0.01070122, 0.1070122, 0.3130108, 0.3879193, 0.1712195]
 for k in range(len(zlad)):
-    nc_lad[k, 7:9, 15:17] = lad_profile[k]
-    nc_lad[k, 11:13, 15:17] = lad_profile[k]
+    nc_lad[k, 38:43, 51:57] = lad_profile[k]
+    # nc_lad[k, 11:13, 15:17] = lad_profile[k]
     
 
 a=nc_buildings_3d[:,:, :]    
