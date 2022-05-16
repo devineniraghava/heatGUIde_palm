@@ -20,7 +20,9 @@ import pytz
 
 from netCDF4 import Dataset
 import numpy as np
-import xarrray as xr
+import xarray as xr
+# import hvplot.xarray
+import numpy.ma as ma
 
 from warnings import filterwarnings
 filterwarnings(action='ignore', category=DeprecationWarning, message='`np.bool` is a deprecated alias')
@@ -28,9 +30,15 @@ filterwarnings(action='ignore', category=DeprecationWarning, message='`np.bool` 
 def prRed(skk): print("\033[31;1;m {}\033[00m" .format(skk)) 
 def prYellow(skk): print("\033[33;1;m {}\033[00m" .format(skk)) 
 
+import os
+try:
+    os.remove("files/riz_3_static")
+    print("file deleted")
+except FileNotFoundError:
+    print("file not found")
+
 
 #%% netCDF main attributes
-
 #%%% Optional attribbutes
 path = '/home/rdevinen/Documents/GitHub/heatGUIde_palm/static_driver/files/riz_3_static'
 nc_file = Dataset(path, 'w', format='NETCDF4')
@@ -68,8 +76,10 @@ dx = 1
 dy = 1
 dz = 1
 
+prRed("netCDF main attributes done!")
 
 #%% Create dimensions
+
 #%%% X dimension
 nc_file.createDimension('x', nx+1)
 x = nc_file.createVariable('x', 'f4', ('x',))
@@ -138,6 +148,7 @@ nsurface_fraction = nc_file.createVariable(
     'nsurface_fraction', 'i4', ('nsurface_fraction',))
 nsurface_fraction[:] = np.arange(3)
 
+prRed("Create dimensions done!")
 
 #%% Create Variables
 #Variables Topography set up
@@ -259,6 +270,8 @@ nc_building_pars.res_orig = 1.0
 nc_building_pars.lod = "E_UTM N_UTM lon lat"
 nc_building_pars[:, :, :] = nc_building_pars._FillValue
 
+prRed("Create Variables done!")
+
 #%% Populate Variables
 
 #%%% populate nc_building_id 
@@ -319,15 +332,23 @@ nc_pavement_type[46:50, 51:88] = 1
 x = np.array(range(26))
 
 y = -(1/1.83) * pow(x,1/0.6) + 117
-
 y = np.around(y).astype(int)
+
+
+y1 = -(1/1.83) * pow(x,1/0.6) + 122
+y1 = np.around(y1).astype(int)
 
 
 for i, j in zip(x,y):
     nc_vegetation_type[:j+1,i] = 1
 
-for i, j in zip(x,y):
-    nc_vegetation_type[j+1:j+4,i+3:i+8] = 1
+for i, j in zip(x,y1):
+    nc_vegetation_type[j-7:j+1,i+5:i+9] = 1
+    
+nc_vegetation_type[:6,30:34] = 1
+nc_vegetation_type[13:21,28:33] = 0
+nc_vegetation_type[13:21,28:33] = ma.masked_equal(nc_vegetation_type[13:21,28:33], 0)
+
 
 
 
@@ -392,9 +413,9 @@ prYellow("File Should be saved in: {}".format(path))
 
 #%% Plotting
 
-ds = xr.open_dataset("files/riz_3_static", engine="netcdf4")
-
-
+ds = xr.open_dataset(
+    "/home/rdevinen/Documents/GitHub/heatGUIde_palm/static_driver/files/riz_3_static", engine="netcdf4")
+ds["vegetation_type"].plot()
 
 
 
