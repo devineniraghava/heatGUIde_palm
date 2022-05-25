@@ -30,17 +30,17 @@ filterwarnings(action='ignore', category=DeprecationWarning, message='`np.bool` 
 def prRed(skk): print("\033[31;1;m {}\033[00m" .format(skk)) 
 def prYellow(skk): print("\033[33;1;m {}\033[00m" .format(skk)) 
 
-import os
-try:
-    os.remove("files/riz_3_static")
-    print("file deleted")
-except FileNotFoundError:
-    print("file not found")
+# import os
+# try:
+#     os.remove("files/riz_3_static")
+#     print("file deleted")
+# except FileNotFoundError:
+#     print("file not found")
 
 
 #%% netCDF main attributes
 #%%% Optional attribbutes
-path = '/home/rdevinen/Documents/GitHub/heatGUIde_palm/static_driver/files/riz_3_static'
+path = 'C:/Users/rdevinen/OneDrive - bwedu/8_PALM/heatGUIde_palm/static_driver/files/riz_3_static'
 nc_file = Dataset(path, 'w', format='NETCDF4')
 nc_file.title = 'HS Offenburg PART 1'
 nc_file.author = 'devineni and haag'
@@ -347,7 +347,7 @@ for i, j in zip(x,y1):
     
 nc_vegetation_type[:6,30:34] = 1
 nc_vegetation_type[13:21,28:33] = 0
-nc_vegetation_type[13:21,28:33] = ma.masked_equal(nc_vegetation_type[13:21,28:33], 0)
+nc_vegetation_type[13:21,28:33] = ma.masked_equal(nc_vegetation_type[13:21,28:33], 0) #Mask an array where equal to a given value.
 
 
 
@@ -413,8 +413,7 @@ prYellow("File Should be saved in: {}".format(path))
 
 #%% Plotting
 
-ds = xr.open_dataset(
-    "/home/rdevinen/Documents/GitHub/heatGUIde_palm/static_driver/files/riz_3_static", engine="netcdf4")
+ds = xr.open_dataset(path, engine="netcdf4")
 ds["vegetation_type"].plot()
 
 
