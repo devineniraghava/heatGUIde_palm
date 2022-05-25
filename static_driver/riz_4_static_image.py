@@ -11,6 +11,11 @@ The steps of the static driver are:
 1) Create RIZ in green area
 2) Input Pavement
 3) Input Trees
+    
+This script is mostly a practice to get correct masked data for pavement and vegitation
+The idea is to implement the correct veg and pavement to the netcdf files, wherer building is masked 
+The sum of the vegitation and pavement should be equal to total, maksing the building.
+This is implemented in the next version 5
 
 """
 
@@ -330,10 +335,6 @@ nc_pavement_type[46:50, 51:88] = 1
 
 #%%% populate nc_vegetation_type 
 
-
-
-
-  
   
 # load the image and convert into 
 # numpy array
@@ -355,16 +356,20 @@ print(type(pilImage))
 print(pilImage.mode)
 print(pilImage.size)
 
-arr1 = np.where(numpydata == 76 , 786, numpydata )
-arr1 = ma.masked_equal(arr1, 786)
-# arr1 = np.where(numpydata > 150 , 1, 0)
+arr1 = np.where(numpydata == 76 , -200, numpydata )
+arr1 = ma.masked_equal(arr1, -200)
+arr2 = np.where(arr1 > 20, 1, 0)
+arr2 = np.ma.masked_where(np.ma.getmask(arr1), arr2)
+
+arr3 = np.where(arr2 == 0, 1, 0)
+arr3 = np.ma.masked_where(np.ma.getmask(arr1), arr3)
 
 
+arr3 = np.flip(arr3,0)
 
-arr1 = np.flip(arr1,0)
 
     
-nc_vegetation_type[:,:] = arr1
+nc_vegetation_type[:,:] = arr3
 
 
 
