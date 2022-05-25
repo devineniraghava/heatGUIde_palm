@@ -46,7 +46,8 @@ except FileNotFoundError:
 
 #%% netCDF main attributes
 #%%% Optional attribbutes
-path = 'C:/Users/rdevinen/OneDrive - bwedu/8_PALM/heatGUIde_palm/static_driver/files/riz_4_static'
+path = '/home/rdevinen/Documents/GitHub/heatGUIde_palm/static_driver/files/riz_5_static'
+path1 = '/home/rdevinen/Documents/GitHub/heatGUIde_palm/static_driver/files/part1.png'
 nc_file = Dataset(path, 'w', format='NETCDF4')
 nc_file.title = 'HS Offenburg PART 1'
 nc_file.author = 'devineni and haag'
@@ -280,6 +281,34 @@ prRed("Create Variables done!")
 
 #%% Populate Variables
 
+# new code
+img_n = Image.open(path1) 
+imgg_n = img_n.convert(mode='RGB')
+numpydata_n = asarray(imgg_n)
+
+r_arr, g_arr, b_arr = numpydata_n[:,:,0], numpydata_n[:,:,1], numpydata_n[:,:,2]
+
+
+# =============================================================================
+# # Just to check for understanding  
+# # shape
+# print(numpydata.shape)
+#   
+# # Below is the way of creating Pillow
+# # image from our numpyarray
+# 
+# pilImage = Image.fromarray(numpydata)
+# print(type(pilImage))
+# 
+# # Let us check  image details
+# # The array is like a mirror of the original image
+# # you can check that from the following command
+# print(pilImage.mode)
+# print(pilImage.size)
+# 
+# =============================================================================
+
+
 #%%% populate nc_building_id 
 #                y      x
 nc_building_id[50:94, 55:85] = 1 
@@ -328,57 +357,25 @@ nc_building_type[:, :])
 
 #%%% populate nc_pavement_type 
 
-nc_pavement_type[46:98, 51:55] = 1
-nc_pavement_type[94:98, 51:88] = 1
-nc_pavement_type[46:98, 85:88] = 1
-nc_pavement_type[46:50, 51:88] = 1
+pavement_arr = np.where(g_arr > 200,1, 0)
+pavement_arr = np.ma.masked_where(pavement_arr == 1, pavement_arr)
+
+
+pavement_arr_flip = np.flip(pavement_arr,0)
+
+nc_pavement_type[:,:] = pavement_arr_flip
 
 #%%% populate nc_vegetation_type 
 
-  
-# load the image and convert into 
-# numpy array
-img = Image.open('C:/Users/rdevinen/Downloads/part1.png')
-imgg = img.convert(mode='L')
-numpydata = asarray(imgg)
-
-print(type(numpydata))
-  
-#  shape
-print(numpydata.shape)
-  
-# Below is the way of creating Pillow 
-# image from our numpyarray
-pilImage = Image.fromarray(numpydata)
-print(type(pilImage))
-  
-# Let us check  image details
-print(pilImage.mode)
-print(pilImage.size)
-
-arr1 = np.where(numpydata == 76 , -200, numpydata )
-arr1 = ma.masked_equal(arr1, -200)
-arr2 = np.where(arr1 > 20, 1, 0)
-arr2 = np.ma.masked_where(np.ma.getmask(arr1), arr2)
-
-arr3 = np.where(arr2 == 0, 1, 0)
-arr3 = np.ma.masked_where(np.ma.getmask(arr1), arr3)
+vegetation_arr = np.where(g_arr > 200,1, 0)
+vegetation_arr = np.ma.masked_where(vegetation_arr == 0, vegetation_arr)
 
 
-arr3 = np.flip(arr3,0)
-
-
+vegetation_arr_flip = np.flip(vegetation_arr,0)
     
-nc_vegetation_type[:,:] = arr3
+nc_vegetation_type[:,:] = vegetation_arr_flip
 
 
-
-
-
-
-# nc_vegetation_type[5:15, 15:] = 3
-# nc_vegetation_type[7:9, 15:17] = 1
-# nc_vegetation_type[11:13, 15:17] = 1
 #%%% populate nc_water_type 
 
 nc_water_type[17:29, 47:] = 2
@@ -437,7 +434,7 @@ prYellow("File Should be saved in: {}".format(path))
 #%% Plotting
 
 ds = xr.open_dataset(path, engine="netcdf4")
-ds["vegetation_type"].plot()
+ds["pavement_type"].plot()
 print(ds.info())
 
 ds.close()
