@@ -46,7 +46,7 @@ except FileNotFoundError:
 
 #%% netCDF main attributes
 #%%% Optional attribbutes
-path = '/home/rdevinen/Documents/GitHub/heatGUIde_palm/static_driver/files/riz_5_static'
+path = '/home/rdevinen/palm/current_version/JOBS/riz_5/INPUT/riz_5_static'
 path1 = '/home/rdevinen/Documents/GitHub/heatGUIde_palm/static_driver/files/part1.png'
 nc_file = Dataset(path, 'w', format='NETCDF4')
 nc_file.title = 'HS Offenburg PART 1'
@@ -117,10 +117,10 @@ z.positive = 'up'
 z[:] = z_array
 
 #%%% nbuilding_pars dimension
-nbuilding_pars_array = np.arange(150)
-nc_file.createDimension('nbuilding_pars', len(nbuilding_pars_array))
-nbuilding_pars = nc_file.createVariable('nbuilding_pars', 'i4', ('nbuilding_pars',))
-nbuilding_pars[:] = nbuilding_pars_array
+# nbuilding_pars_array = np.arange(150)
+# nc_file.createDimension('nbuilding_pars', len(nbuilding_pars_array))
+# nbuilding_pars = nc_file.createVariable('nbuilding_pars', 'i4', ('nbuilding_pars',))
+# nbuilding_pars[:] = nbuilding_pars_array
 
 
 #%%% zlad dimension (height above ground)
@@ -269,13 +269,13 @@ nc_lad.units = "m2 m-3"
 nc_lad[:, :, :] = nc_lad._FillValue
 
 #%%% create building_pars variable
-nc_building_pars = nc_file.createVariable(
-    'building_pars', 'f4', ('nbuilding_pars', 'y', 'x'), fill_value=-9999.0)
-nc_building_pars.long_name = "building parameters"
-nc_building_pars.units = ""
-nc_building_pars.res_orig = 1.0
-nc_building_pars.lod = "E_UTM N_UTM lon lat"
-nc_building_pars[:, :, :] = nc_building_pars._FillValue
+# nc_building_pars = nc_file.createVariable(
+#     'building_pars', 'f4', ('nbuilding_pars', 'y', 'x'), fill_value=-9999.0)
+# nc_building_pars.long_name = "building parameters"
+# nc_building_pars.units = ""
+# nc_building_pars.res_orig = 1.0
+# nc_building_pars.lod = "E_UTM N_UTM lon lat"
+# nc_building_pars[:, :, :] = nc_building_pars._FillValue
 
 prRed("Create Variables done!")
 
@@ -286,7 +286,12 @@ img_n = Image.open(path1)
 imgg_n = img_n.convert(mode='RGB')
 numpydata_n = asarray(imgg_n)
 
-r_arr, g_arr, b_arr = numpydata_n[:,:,0], numpydata_n[:,:,1], numpydata_n[:,:,2]
+r_arr, g_arr, b_arr = numpydata_n[:,:,0].astype("int"), numpydata_n[:,:,1].astype("int"), numpydata_n[:,:,2].astype("int")
+
+# These RGB values exist only in uint8 values with max of 255
+# Green = Vegitation
+# Black = Soil
+# Red = Building
 
 
 # =============================================================================
@@ -311,38 +316,43 @@ r_arr, g_arr, b_arr = numpydata_n[:,:,0], numpydata_n[:,:,1], numpydata_n[:,:,2]
 
 #%%% populate nc_building_id 
 #                y      x
-nc_building_id[50:94, 55:85] = 1 
-nc_building_id[50:94, 55:65] = 2 
-nc_building_id[50:94, 75:85] = 3 
-# nc_building_id[-5:, -5:] = 4
+building_id_arr = np.where(r_arr == 255, 1, 0)
+building_id_arr = np.ma.masked_where(building_id_arr == 0, building_id_arr) # mask array when condition is met
+
+buildings_2d_arr1 = np.where(building_id_arr == 1)
+
+y0, y1 = buildings_2d_arr1[0].min() , buildings_2d_arr1[0].max()
+
+x0, x1, x2, x3 = buildings_2d_arr1[1].min(),  buildings_2d_arr1[1].min() + 10, buildings_2d_arr1[1].min() + 20, buildings_2d_arr1[1].max()
+
+
+building_id_arr[y0:y1+1, x0:x1+1] = 1
+building_id_arr[y0:y1+1, x1+1:x2+1] = 2
+building_id_arr[y0:y1+1, x2+1:x3+1] = 3
+
+nc_building_id[:,:] = np.flip(building_id_arr,0)
 
 
 #%%% populate nc_buildings_2d 
 
-nc_buildings_2d[:, :] = np.where(
-    nc_building_id[:, :] == 1,
-    nc_building_id[:, :] * 15.0,
-    nc_buildings_2d[:, :])
+buildings_2d_arr1 = building_id_arr.copy()
+buildings_2d_arr1[y0:y1+1, x0:x1+1] = 19
+buildings_2d_arr1[y0:y1+1, x1+1:x2+1] = 15
+buildings_2d_arr1[y0:y1+1, x2+1:x3+1] = 19
 
-nc_buildings_2d[:, :] = np.where(
-    nc_building_id[:, :] == 2,
-    (nc_building_id[:, :] * 19.0)/2,
-    nc_buildings_2d[:, :])
 
-nc_buildings_2d[:, :] = np.where(
-    nc_building_id[:, :] == 3,
-    (nc_building_id[:, :] * 19.0)/3,
-    nc_buildings_2d[:, :])
-
+nc_buildings_2d[:, :] = np.flip(buildings_2d_arr1,0)
 
 #%%% populate nc_buildings_3d 
 
-for k in range(nz+1):
-    nc_buildings_3d[k, :, :] = np.where(nc_buildings_2d[:, :] > z[k], 1, 0)
 
-nc_building_pars[0, :, :] = np.where(nc_buildings_2d[:, :] > 0, 0.4, -9999.0) #Wall fraction above the ground floor level
-nc_building_pars[1, :, :] = np.where(nc_buildings_2d[:, :] > 0, 0.6, -9999.0) #Window fraction above the ground floor level
-    
+nc_buildings_3d[:, :, :] = 0
+nc_buildings_3d[:19+1, y0:y1+1, x0:x1+1] = 1
+nc_buildings_3d[:15+1, y0:y1+1, x1+1:x2+1] = 1
+nc_buildings_3d[:19+1, y0:y1+1, x2+1:x3+1] = 1
+nc_buildings_3d[:, :, :] = np.flip(nc_buildings_3d[:, :, :],1)
+
+
 nc_zt[:, :] = 4.0
 
 
@@ -350,61 +360,90 @@ nc_zt[:, :] = 4.0
 
 # Set surface types
 # -----------------
-nc_building_type[:, :] = np.where(
-nc_building_id[:, :] > nc_building_id._FillValue,
-nc_building_id[:, :] * 1, 
-nc_building_type[:, :])
+nc_building_type[:, :] = np.flip(building_id_arr,0)
 
 #%%% populate nc_pavement_type 
 
-pavement_arr = np.where(g_arr > 200,1, 0)
-pavement_arr = np.ma.masked_where(pavement_arr == 1, pavement_arr)
+pavement_arr = np.where(g_arr > 200,786, 1)
+pavement_arr2 = np.where(r_arr > 200,786, pavement_arr)
+pavement_arr2 = np.where(b_arr > 200,786, pavement_arr2)
+
+pavement_arr2 = np.ma.masked_where(pavement_arr2 == 786, pavement_arr2)
 
 
-pavement_arr_flip = np.flip(pavement_arr,0)
+pavement_arr_flip = np.flip(pavement_arr2,0)
 
 nc_pavement_type[:,:] = pavement_arr_flip
 
 #%%% populate nc_vegetation_type 
 
-vegetation_arr = np.where(g_arr > 200,1, 0)
+vegetation_arr = np.where(g_arr > 200,3, 0)
+vegetation_arr = np.where(b_arr > 200,0, vegetation_arr)
 vegetation_arr = np.ma.masked_where(vegetation_arr == 0, vegetation_arr)
-
-
-vegetation_arr_flip = np.flip(vegetation_arr,0)
+vegetation_arr = np.flip(vegetation_arr,0)
+vegetation_arr[18:23, 12:18] = 1
+vegetation_arr_flip = vegetation_arr
     
 nc_vegetation_type[:,:] = vegetation_arr_flip
 
 
 #%%% populate nc_water_type 
+water_arr = np.where(b_arr > 200,2, 0)
+water_arr = np.ma.masked_where(water_arr == 0, water_arr)
 
-nc_water_type[17:29, 47:] = 2
-nc_water_type[50:61, 47:] = 2
+nc_water_type[:,:] = np.flip(water_arr,0)
+
 #%%% populate nc_soil_type 
 # soil type is dependent on pavement
-nc_soil_type[:, :] = np.where(
-    nc_vegetation_type[:, :] > nc_vegetation_type._FillValue,
-    2,
-    nc_soil_type[:, :])
-nc_soil_type[:, :] = np.where(
-    nc_pavement_type[:, :] > nc_pavement_type._FillValue,
-    2,
-    nc_soil_type[:, :])
+
+soil_type_arr = np.where(r_arr == 255, 1, 2)
+soil_type_arr = np.where(b_arr > 200, 1, soil_type_arr)
+soil_type_arr = np.ma.masked_where(soil_type_arr == 1, soil_type_arr) # mask array when condition is met
+
+
+
+nc_soil_type[:, :] = np.flip(soil_type_arr,0)
 #%%% populate nc_street_type 
 
-nc_street_type[:, :] = np.where(nc_pavement_type[:, :] == 1, 11, nc_street_type[:, :])
-nc_street_type[:, :] = np.where(nc_pavement_type[:, :] == 2, 13, nc_street_type[:, :])
+street_type_arr = np.where(g_arr > 200,786, 11)
+street_type_arr2 = np.where(r_arr > 200,786, street_type_arr)
+street_type_arr2 = np.where(b_arr > 200,786, street_type_arr2)
+
+street_type_arr2 = np.ma.masked_where(street_type_arr2 == 786, street_type_arr2)
+
+
+street_type_arr_flip = np.flip(street_type_arr2,0)
+
+nc_street_type[:, :] = street_type_arr_flip
+
 #%%% populate nc_surface_fraction 
+
+# nsurface_fraction = 0, vegitation type
+# surface_fraction = 1, pavement type
+# surface_fraction = 1, water type
+
+''' The sum over all relative fractions must be equal to one for each location. 
+This parameter is only needed at locations (y,x) where more than one surface type (vegetation, pavement, water) is defined. 
+Moreover, if more than one surface type is defined at a location, the relative fractions of the respective surface types must not be 0. 
+Also, if surface_fraction is given for one of the above mentioned surface types, this type need to be defined at this location.'''
 
 nc_surface_fraction[0, :, :] = np.where(
     nc_building_id[:, :] > nc_building_id._FillValue,
     nc_surface_fraction[0, :, :],
     0)
+
 nc_surface_fraction[2, :, :] = nc_surface_fraction[1, :, :] = nc_surface_fraction[0, :, :]
+
 nc_surface_fraction[0, :, :] = np.where(
     nc_vegetation_type[:, :] > nc_vegetation_type._FillValue,
     1,
     nc_surface_fraction[0, :, :])
+
+nc_surface_fraction[0, :, :] = np.where(
+    nc_water_type[:, :] > nc_water_type._FillValue,
+    0,
+    nc_surface_fraction[0, :, :])
+
 nc_surface_fraction[1, :, :] = np.where(
     nc_pavement_type[:, :] > nc_pavement_type._FillValue,
     1,
@@ -421,11 +460,11 @@ nc_surface_fraction[2, :, :] = np.where(
         # --------------
 lad_profile = [0.0, 0.01070122, 0.1070122, 0.3130108, 0.3879193, 0.1712195]
 for k in range(len(zlad)):
-    nc_lad[k, 38:43, 51:57] = lad_profile[k]
+    nc_lad[k, 18:23, 12:18] = lad_profile[k]
     # nc_lad[k, 11:13, 15:17] = lad_profile[k]
-    
 
-a=nc_buildings_3d[:,:, :]    
+
+a=nc_buildings_3d[:,:, :]
 nc_file.close()
 prYellow("File Should be saved in: {}".format(path))
 
@@ -434,9 +473,9 @@ prYellow("File Should be saved in: {}".format(path))
 #%% Plotting
 
 ds = xr.open_dataset(path, engine="netcdf4")
-ds["pavement_type"].plot()
-print(ds.info())
-
+ds["street_type"].plot()
+# print(ds.info())
+print(ds.data_vars)
 ds.close()
 
 
